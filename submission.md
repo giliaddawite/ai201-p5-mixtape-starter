@@ -1,5 +1,11 @@
 # Mixtape Bug Hunt — Submission
 
+## Commit History
+
+`git log --oneline` on the `bugfix/mixtape` branch shows one `fix:` commit per bug (#1, #2, #4):
+
+![git log --oneline on bugfix/mixtape](git-log.png)
+
 ## AI Usage
 
 I did this project with Claude Code, an AI coding agent running in my terminal with access to the repo. It did much more than answer questions: it read files, ran commands, edited code, and made commits. My role was mostly to give it the project brief and issue reports, steer the pace, and review what it produced. This section describes that split as it actually happened.
