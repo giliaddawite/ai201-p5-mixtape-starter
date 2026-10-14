@@ -31,7 +31,9 @@ I did this project with Claude Code, an AI coding agent running in my terminal w
 
 **What I verified myself**
 
-_[Fill in honestly: e.g. which test commands you ran yourself, which code changes you read line by line, whether you reproduced any issue through the running app, and anything you questioned or changed in the AI's explanations.]_
+- I checked for myself that all three fixes (#1, #2 and #4) work. I didn't just rely on the AI's report that they did.
+- I ran `git log --oneline` on the `bugfix/mixtape` branch myself to confirm there is one `fix:` commit per bug.
+- I pasted each issue report to the AI one at a time and made it reproduce and document each bug before moving to the next. That pacing is how the wrong first fix for #2 was caught.
 
 ## Codebase Map
 
