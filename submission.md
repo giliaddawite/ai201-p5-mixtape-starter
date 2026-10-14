@@ -1,5 +1,38 @@
 # Mixtape Bug Hunt — Submission
 
+## AI Usage
+
+I did this project with Claude Code, an AI coding agent running in my terminal with access to the repo. It did much more than answer questions: it read files, ran commands, edited code, and made commits. My role was mostly to give it the project brief and issue reports, steer the pace, and review what it produced. This section describes that split as it actually happened.
+
+**What I asked it to do, and what it did**
+
+- **Orientation:**
+  - I gave it the project context. It read `README.md`, `models.py`, every service, route and test, and `seed_data.py`.
+  - It set up the virtualenv and ran `pytest` to get a baseline: 4 failing tests, covering issues #1, #3 and #5. Issues #2 and #4 had no tests at all.
+  - It drafted the codebase map from that reading.
+- **Reproducing each issue:**
+  - I pasted each issue report one at a time.
+  - For each, the AI wrote a small script that replays the reporter's exact scenario, such as kenji's streak of 12 going from Saturday to Sunday, or nova's feed with a friend who listened at 11pm.
+  - It ran each script against the original code to show the bug, then against the fix.
+  - For #4 it went through the real HTTP endpoints with Flask's test client.
+- **Tracing the cause:** it followed each endpoint from its route to the service function behind it. It used grep to find every place that writes the same data, for example the only code that writes `listening_streak`, and the only caller of `create_notification`.
+- **Fixes and tests:** it made the code changes and added regression tests for #2 and #4, which had none. It confirmed each new test fails on the old code and passes on the new.
+- **Side-effect checks and write-ups:**
+  - It ran a script testing both sides of each boundary (Sunday, midnight UTC), plus related features that touch the same data: the activity feed, re-rating a song, and mark-as-read.
+  - It drafted the root cause entries and this section.
+
+**Where the AI was wrong or incomplete, and what caught it**
+
+- **Issue #2, wrong first fix.** The AI's first fix narrowed the "listening now" window from 24 hours to 30 minutes, because a comment in `seed_data.py` called events within 30 minutes "listening now". When I pasted nova's actual report, it says the expected behavior is "only friends who have listened today appear". The AI re-ran its reproduction against the 30-minute version, and it hid a friend who had listened earlier that same day. The real problem was using a rolling window at all, not its length. The final fix uses the start of the current day. Lesson: a code comment isn't the spec, and the user's report should win.
+- **Running ahead of the process.** Before I'd shared the individual reports, the AI started fixing several bugs in a row from the code alone. I told it to go one issue at a time, and that's what exposed the #2 mistake above. It also guessed at the five fields for the root-cause write-up before I gave it the real format, and it said it was guessing.
+- **An over-general claim in the codebase map.** Its first draft said every route delegates to a service. On re-checking, `GET /users/<id>` queries the database directly, so it corrected the sentence.
+- **A bug outside the five issues.** While reproducing #4, its test hit a 500 error when adding a song to a playlist on a fresh database. It flagged this and kept it out of the #4 fix instead of widening the change.
+- **Tooling slips.** A scripted edit failed on a file with mixed line endings, and an output filter once hid the result lines it was trying to check. Both times it noticed and re-ran the step, rather than reporting success from incomplete output.
+
+**What I verified myself**
+
+_[Fill in honestly: e.g. which test commands you ran yourself, which code changes you read line by line, whether you reproduced any issue through the running app, and anything you questioned or changed in the AI's explanations.]_
+
 ## Codebase Map
 
 Mixtape is a Flask + Flask-SQLAlchemy JSON API backed by SQLite. There is no frontend; every feature is an HTTP endpoint that returns JSON. The code is split into three layers: **models** (the data), **routes** (HTTP), and **services** (logic).
